@@ -1,0 +1,73 @@
+version: '3.9'
+
+services:
+  core-vestiaire-collective:
+    profiles:
+      - mysql
+    container_name: core-vestiaire-collective
+    build:
+      dockerfile: Dockerfile
+      target: base
+      context: .
+    command: ["python", "solution/channel/fastapi/main.py"]
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - "./src/:/usr/src/app"
+    ports:
+      - ${PORT}:${PORT}
+    env_file:
+      - .env
+    networks:
+      - core-vestiaire-collective
+
+  core-vestiaire-collective-db-mysql:
+    profiles:
+      - mysql
+    image: mysql:8.0
+    environment:
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ALLOW_EMPTY_PASSWORD: 1
+      MYSQL_USER: ${DB_USERNAME}
+    ports:
+      - 3316:3306
+    volumes:
+      - core-vestiaire-collective-db-volume-mysql:/var/lib/mysql
+    networks:
+      - core-vestiaire-collective
+    healthcheck:
+      test: mysqladmin ping -h 127.0.0.1 -u $$MYSQL_USER --password=$$MYSQL_PASSWORD
+      interval: 5s
+      timeout: 3s
+
+  core-vestiaire-collective-db-initializer-mysql:
+    profiles:
+      - mysql
+    container_name: core-vestiaire-collective-db-initializer-mysql
+    build:
+      dockerfile: Dockerfile
+      target: base
+      context: .
+    command: ["bash", "/usr/src/helper_scripts/migrate_db.sh"]
+    depends_on:
+      core-vestiaire-collective-db-mysql:
+        condition: service_healthy
+    environment:
+      - CURRENT_SERVICE_NAME=VESTIAIRE_COLLECTIVE
+    env_file:
+      - .env
+    networks:
+      - core-vestiaire-collective
+    volumes:
+      - "./src:/usr/src/app"
+      - "./src/solution/sp/mysql:/usr/src/alembic"
+      - "./helper_scripts:/usr/src/helper_scripts"
+
+volumes:
+  core-vestiaire-collective-db-volume-mysql: {}
+
+networks:
+  core-vestiaire-collective:
+    external: true
