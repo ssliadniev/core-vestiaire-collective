@@ -9,7 +9,7 @@ rest_controller = RestController()
 
 
 @router.post(
-    "/sent_the_shipment",
+    "/send_the_shipment",
     status_code=200,
     response_model=SendTheShipmentResponseSchema,
     tags=["Core Vestiaire Collective"],
