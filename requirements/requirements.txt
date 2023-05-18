@@ -5,5 +5,5 @@ sqlalchemy[asyncio]==1.4.31
 alembic==1.7.1
 mysqlclient==2.1.0
 PyMySQL==1.0.2
-asyncmy==0.2.3
 werkzeug==2.1.1
+asyncmy==0.2.7

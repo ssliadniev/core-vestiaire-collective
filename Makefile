@@ -55,8 +55,9 @@ build: ## build image, which is used for the services
 
 run: ## run the service
 	@echo "Running the $(NAME) service.";
-	docker-compose down -v
-	docker-compose --profile mysql up -d
+	docker-compose down -v;
+	docker-compose --profile mysql build;
+	docker-compose --profile mysql up -d;
 	@echo "The service was started successfully.";
 	xdg-open http://localhost:6063/docs
 
